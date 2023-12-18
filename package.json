@@ -1,0 +1,19 @@
+{
+  "name": "chuckbot",
+  "version": "1.0.0",
+  "description": "ChuckBot project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js"
+  },
+  "author": "Nikol Sapozhnikov",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1",
+    "node-telegram-bot-api": "^0.64.0",
+    "uuid": "^9.0.1"
+  }
+}
