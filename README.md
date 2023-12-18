@@ -12,5 +12,5 @@ After you start the chat you need:
 2. Select a joke number (between 1 and 101) using the command `<Your Number>`.
 
 ## Screenshots
-![Screenshot](screenshots/screenshot1.png)
+![Screenshot](botScreenshot/botScreenshot.png)
 
