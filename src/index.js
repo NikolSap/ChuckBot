@@ -10,16 +10,10 @@ const bot = new TelegramBot(TOKEN, {polling: true});
 const languageMap = new Map();
 let languageCode=process.env.DEFULT_LANG;
 
-const headers = {
-  Accept: "text/html",
-  "Accept-Encoding": "gzip, deflate, br",
-  "Accept-Language": "en-US,en;q=0.5",
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0",
-};
-
+// Function that gets all supported languages by azure translator
 async function getSupportedLanguages(){
     const endpoint = 'https://api.cognitive.microsofttranslator.com/languages';
+
     try {
         const response = await axios({
             method: 'get',
@@ -40,13 +34,16 @@ async function getSupportedLanguages(){
     }
 }
 
+// Function that translates text using azure translator
 async function translateText(message,languageCode) {
     const endpoint = "https://api.cognitive.microsofttranslator.com";
     const location = "eastus2";
+
     try {
         if (!languageCode) {
             console.error(`Language not found in map for language: ${language}`);
         }
+
         const response = await axios({
             baseURL: endpoint,
             url: '/translate',
@@ -69,6 +66,7 @@ async function translateText(message,languageCode) {
         });
 
         const jsonString = JSON.parse(JSON.stringify(response.data, null, 4));
+
         return jsonString[0].translations[0].text;
 
     } catch (error) {
@@ -77,17 +75,29 @@ async function translateText(message,languageCode) {
     }
 }
 
+
+// Function that retrieves Chuck Norris jokes from a given URL
 async function getChuckNorrisJokes(){
     const url="https://parade.com/968666/parade/chuck-norris-jokes/";
+    const headers = {
+        Accept: "text/html",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US,en;q=0.5",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0",
+    };
+    
     try{
         const jokes=[];
         const response = await axios.get(url,{headers});
         const html = response.data;
         const $ = cheerio.load(html);
-        $(".m-detail--body ol li").each((index,elem)=>{
+
+        $(".m-detail--body ol li").each((elem)=>{
             const joke=$(elem);
             jokes.push(joke.text());
         })
+
         return jokes;
     }catch(err){
         console.log("Error in getChuckNorrisJokes function");
@@ -95,6 +105,7 @@ async function getChuckNorrisJokes(){
     }
 }
 
+// Function that fetches a joke by index and translates the joke to the chosen language
 async function fetchJokeByIndex(jokeIndex,msg){
     try{
         const jokesArr= await getChuckNorrisJokes();
@@ -112,21 +123,20 @@ async function fetchJokeByIndex(jokeIndex,msg){
     }
 }
 
+// TelegramBot function that handle the /start command
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     languageCode=process.env.DEFULT_LANG;
-    const startMsg=`Welcome to Chuck Bot.
-    The default language is English.
-
-    To set your language, write the message:
-    set language <Your language>.
-
-    To get a joke, please select a number between 1 to 101
-    by using the message:  <Joke number>.
-    `
+    const startMsg=
+    'Welcome to Chuck Bot.'+
+    'The default language is <strong>English</strong>.\n\n' +
+    'To set your language, write the message: <code>set language <Your language></code>.\n\n' +
+    'To get a joke, please select a number between 1 to 101 by using the message: <code><Joke number></code>.';
+    
     bot.sendMessage(chatId, startMsg);
 });
 
+// TelegramBot function that get the user's selected language
 bot.onText(/set language (\w+)/i, async(msg,match)=>{
     const chatId = msg.chat.id;
     try{
@@ -143,11 +153,15 @@ bot.onText(/set language (\w+)/i, async(msg,match)=>{
     }
 });
 
+// TelegramBot function that get a joke index from the user
+// Returns the joke at the selected index in the chosen language
 bot.onText(/\d+/g,async(msg)=>{
     const jokeNum = parseInt(msg.text);
     await fetchJokeByIndex(jokeNum,msg);
 });
 
+// TelegramBot function that handles incoming messages and responds
+// if the message does not match predefined commands
 bot.on('message', async(msg)=>{
     const chatId = msg.chat.id;
     if (!msg.text.match(/set language (\w+)/i) && !msg.text.match(/\d+/g) && !msg.text.match(/\/start/)) {
