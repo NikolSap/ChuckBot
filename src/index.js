@@ -76,7 +76,6 @@ async function translateText(message,languageCode) {
     }
 }
 
-
 // Function that retrieves Chuck Norris jokes from a given URL
 async function getChuckNorrisJokes(){
     const url="https://parade.com/968666/parade/chuck-norris-jokes/";
@@ -163,15 +162,15 @@ bot.onText(/set language (\w+)/i, async(msg,match)=>{
     }
 });
 
-// TelegramBot function that get a joke index from the user
-// Returns the joke at the selected index in the chosen language
+/* TelegramBot function that get a joke index from the user
+   Returns the joke at the selected index in the chosen language */
 bot.onText(/\d+/g,async(msg)=>{
     const jokeNum = parseInt(msg.text);
     await fetchJokeByIndex(jokeNum,msg);
 });
 
-// TelegramBot function that handles incoming messages and responds
-// if the message does not match predefined commands
+/* TelegramBot function that handles incoming messages and responds
+   if the message does not match predefined commands */
 bot.on('message', async(msg)=>{
     const chatId = msg.chat.id;
 
