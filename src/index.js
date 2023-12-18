@@ -9,6 +9,7 @@ const KEY = process.env.KEY;
 const bot = new TelegramBot(TOKEN, {polling: true});
 const languageMap = new Map();
 let languageCode=process.env.DEFULT_LANG;
+let jokesArr=[];
 
 // Function that gets all supported languages by Azure translator
 async function getSupportedLanguages(){
@@ -86,21 +87,19 @@ async function getChuckNorrisJokes(){
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0",
     };
-    
+
     try{
         const jokes=[];
         const response = await axios.get(url,{headers});
         const html = response.data;
         const $ = cheerio.load(html);
-
-        $(".m-detail--body ol li").each((elem)=>{
+        $(".m-detail--body ol li").each((index,elem)=>{
             const joke=$(elem);
             jokes.push(joke.text());
         })
-
         return jokes;
-    } catch(err){
-        console.error("Error in getChuckNorrisJokes function", err.message);
+    }catch(err){
+        console.log("Error in getChuckNorrisJokes function");
         return [];
     }
 }
@@ -109,7 +108,10 @@ async function getChuckNorrisJokes(){
 async function fetchJokeByIndex(jokeIndex,msg){
 
     try{
-        const jokesArr= await getChuckNorrisJokes();
+        if(jokesArr.length===0){
+            console.log("empty")
+            jokesArr= await getChuckNorrisJokes();
+        }
 
         if(jokeIndex>=1 && jokeIndex<=101){
             const joke=jokesArr[jokeIndex-1];
@@ -130,10 +132,15 @@ bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     languageCode=process.env.DEFULT_LANG;
     const startMsg=
-    'Welcome to ChuckBot.'+
-    'The default language is <strong>English</strong>.\n\n' +
-    'To set your language, use the message: <code>set language <Your language></code>.\n\n' +
-    'To get a joke, please select a number between 1 to 101 by using the message: <code><Joke number></code>.';
+    `Welcome to ChuckBot.
+    The default language is English.
+
+    To set your language, use the message:
+    set language <Your language>
+
+    To get a joke, please select a number between 1 to 101 by
+    using the message:
+    <Joke number>`;
 
     bot.sendMessage(chatId, startMsg);
 });
