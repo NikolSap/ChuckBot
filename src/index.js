@@ -10,7 +10,7 @@ const bot = new TelegramBot(TOKEN, {polling: true});
 const languageMap = new Map();
 let languageCode=process.env.DEFULT_LANG;
 
-// Function that gets all supported languages by azure translator
+// Function that gets all supported languages by Azure translator
 async function getSupportedLanguages(){
     const endpoint = 'https://api.cognitive.microsofttranslator.com/languages';
 
@@ -29,19 +29,19 @@ async function getSupportedLanguages(){
             languageMap.set(languageName, languageCode);
         });
 
-    } catch (error) {
-        console.error('Error:', error.message);
+    } catch (err) {
+        console.error('Error in getSupportedLanguages function', err.message);
     }
 }
 
-// Function that translates text using azure translator
+// Function that translates text using Azure translator
 async function translateText(message,languageCode) {
     const endpoint = "https://api.cognitive.microsofttranslator.com";
     const location = "eastus2";
 
     try {
         if (!languageCode) {
-            console.error(`Language not found in map for language: ${language}`);
+            throw new Error(`Language not found in map for language: ${language}`);
         }
 
         const response = await axios({
@@ -69,9 +69,9 @@ async function translateText(message,languageCode) {
 
         return jsonString[0].translations[0].text;
 
-    } catch (error) {
-        console.error('Error:', error.message);
-        throw error; 
+    } catch (err) {
+        console.error('Error in translateText function ', err.message);
+        throw err; 
     }
 }
 
@@ -99,16 +99,18 @@ async function getChuckNorrisJokes(){
         })
 
         return jokes;
-    }catch(err){
-        console.log("Error in getChuckNorrisJokes function");
+    } catch(err){
+        console.error("Error in getChuckNorrisJokes function", err.message);
         return [];
     }
 }
 
 // Function that fetches a joke by index and translates the joke to the chosen language
 async function fetchJokeByIndex(jokeIndex,msg){
+
     try{
         const jokesArr= await getChuckNorrisJokes();
+
         if(jokeIndex>=1 && jokeIndex<=101){
             const joke=jokesArr[jokeIndex-1];
             const translatedJoke = await translateText(joke,languageCode);
@@ -117,9 +119,9 @@ async function fetchJokeByIndex(jokeIndex,msg){
         else{
             bot.sendMessage(msg.chat.id, "Please enter valid number (between 1 to 101)");
         }
-    }catch(err){
-        bot.sendMessage(msg.chat.id, err.msg);
 
+    } catch(err){
+        console.error('Error in fetchJokeByIndex function', err.message);
     }
 }
 
@@ -128,17 +130,18 @@ bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     languageCode=process.env.DEFULT_LANG;
     const startMsg=
-    'Welcome to Chuck Bot.'+
+    'Welcome to ChuckBot.'+
     'The default language is <strong>English</strong>.\n\n' +
-    'To set your language, write the message: <code>set language <Your language></code>.\n\n' +
+    'To set your language, use the message: <code>set language <Your language></code>.\n\n' +
     'To get a joke, please select a number between 1 to 101 by using the message: <code><Joke number></code>.';
-    
+
     bot.sendMessage(chatId, startMsg);
 });
 
 // TelegramBot function that get the user's selected language
 bot.onText(/set language (\w+)/i, async(msg,match)=>{
     const chatId = msg.chat.id;
+
     try{
         const language = match[1].toLowerCase(); 
         languageCode = languageMap.get(language);
@@ -148,7 +151,7 @@ bot.onText(/set language (\w+)/i, async(msg,match)=>{
         }else{
             bot.sendMessage(chatId, "This language unsupported.Please try again.");
         }
-    }catch(err){
+    } catch(err){
         bot.sendMessage(chatId, err.message);
     }
 });
@@ -164,6 +167,7 @@ bot.onText(/\d+/g,async(msg)=>{
 // if the message does not match predefined commands
 bot.on('message', async(msg)=>{
     const chatId = msg.chat.id;
+
     if (!msg.text.match(/set language (\w+)/i) && !msg.text.match(/\d+/g) && !msg.text.match(/\/start/)) {
         bot.sendMessage(chatId, "I didn't understand that. Please use the commands mentioned at the beginning of the chat.");
     }
