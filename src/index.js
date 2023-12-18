@@ -150,7 +150,9 @@ bot.onText(/\d+/g,async(msg)=>{
 
 bot.on('message', async(msg)=>{
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "I didn't understand that. Please use the commands mentioned at the beginning of the chat.");
+    if (!msg.text.match(/set language (\w+)/i) && !msg.text.match(/\d+/g) && !msg.text.match(/\/start/)) {
+        bot.sendMessage(chatId, "I didn't understand that. Please use the commands mentioned at the beginning of the chat.");
+    }
 })
 
 getSupportedLanguages();
