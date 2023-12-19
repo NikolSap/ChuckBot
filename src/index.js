@@ -40,11 +40,10 @@ async function translateText(message,languageCode) {
     const endpoint = "https://api.cognitive.microsofttranslator.com";
     const location = "eastus2";
 
-    try {
-        if (!languageCode) {
-            throw new Error(`Language not found in map for language: ${language}`);
-        }
+    console.log(message);
+    console.log(languageCode)
 
+    try {
         const response = await axios({
             baseURL: endpoint,
             url: '/translate',
@@ -57,7 +56,7 @@ async function translateText(message,languageCode) {
             },
             params: {
                 'api-version': '3.0',
-                'from': 'en',
+                'from': process.env.DEFULT_LANG,
                 'to': languageCode,
             },
             data: [{
@@ -65,20 +64,19 @@ async function translateText(message,languageCode) {
             }],
             responseType: 'json'
         });
-
         const jsonString = JSON.parse(JSON.stringify(response.data, null, 4));
 
         return jsonString[0].translations[0].text;
 
     } catch (err) {
         console.error('Error in translateText function ', err.message);
-        throw err; 
     }
 }
 
 // Function that retrieves Chuck Norris jokes from a given URL
 async function getChuckNorrisJokes(){
     const url="https://parade.com/968666/parade/chuck-norris-jokes/";
+    const jokes=[];
     const headers = {
         Accept: "text/html",
         "Accept-Encoding": "gzip, deflate, br",
@@ -88,7 +86,6 @@ async function getChuckNorrisJokes(){
     };
 
     try{
-        const jokes=[];
         const response = await axios.get(url,{headers});
         const html = response.data;
         const $ = cheerio.load(html);
@@ -96,21 +93,23 @@ async function getChuckNorrisJokes(){
             const joke=$(elem);
             jokes.push(joke.text());
         })
+
         return jokes;
-    }catch(err){
-        console.log("Error in getChuckNorrisJokes function");
+    } catch(err){
+        console.log("Error in getChuckNorrisJokes function", err.message);
+
         return [];
     }
 }
 
-// Function that fetches a joke by index and translates the joke to the chosen language
+// Function that fetches a joke by index and translates the joke to the target language
 async function fetchJokeByIndex(jokeIndex,msg){
-
     try{
+
         if(jokesArr.length===0){
-            console.log("empty")
             jokesArr= await getChuckNorrisJokes();
         }
+
 
         if(jokeIndex>=1 && jokeIndex<=101){
             const joke=jokesArr[jokeIndex-1];
@@ -129,17 +128,10 @@ async function fetchJokeByIndex(jokeIndex,msg){
 // TelegramBot function that handle the /start command
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
-    languageCode=process.env.DEFULT_LANG;
     const startMsg=
-    `Welcome to ChuckBot.
-    The default language is English.
-
-    To set your language, use the message:
-    set language <Your language>
-
-    To get a joke, please select a number between 1 to 101 by
-    using the message:
-    <Joke number>`;
+    `Welcome to ChuckBot.\nThe default language is English.\n\nTo set your language, use the command:\nset language <Your language>\n
+To get a joke, please select a number between 1 and 101 by using the command:\n<Joke number>`;
+    languageCode=process.env.DEFULT_LANG;
 
     bot.sendMessage(chatId, startMsg);
 });
@@ -147,26 +139,37 @@ bot.onText(/\/start/, async (msg) => {
 // TelegramBot function that get the user's selected language
 bot.onText(/set language (\w+)/i, async(msg,match)=>{
     const chatId = msg.chat.id;
+    const language = match[1].toLowerCase(); 
+    languageCode = languageMap.get(language);
 
     try{
-        const language = match[1].toLowerCase(); 
-        languageCode = languageMap.get(language);
         if(languageCode){
             const translatedMsg = await translateText("No problem",languageCode);
             bot.sendMessage(chatId, translatedMsg);
-        }else{
+        } else{
             bot.sendMessage(chatId, "This language unsupported.Please try again.");
         }
     } catch(err){
-        bot.sendMessage(chatId, err.message);
+        console.error('Error in setLanguage bot function', err.message)
     }
+    
 });
 
 /* TelegramBot function that get a joke index from the user
    Returns the joke at the selected index in the chosen language */
 bot.onText(/\d+/g,async(msg)=>{
     const jokeNum = parseInt(msg.text);
-    await fetchJokeByIndex(jokeNum,msg);
+    try{
+        await fetchJokeByIndex(jokeNum,msg);
+    } catch(err){
+        console.error('Error in fetching joke by number', err.message)
+    }
+});
+
+bot.onText(/\/help/, (msg) => {
+    const chatId = msg.chat.id;
+    const helpMsg="Here are the valid commands:\n1. /start - Initiate the chat\n2. /help - See the list of available commands\n3. set language <Your Language> - Set your preferred language\n4. <Joke number> - Get a Chuck Norris joke by number"
+    bot.sendMessage(chatId,helpMsg );
 });
 
 /* TelegramBot function that handles incoming messages and responds
@@ -174,8 +177,9 @@ bot.onText(/\d+/g,async(msg)=>{
 bot.on('message', async(msg)=>{
     const chatId = msg.chat.id;
 
-    if (!msg.text.match(/set language (\w+)/i) && !msg.text.match(/\d+/g) && !msg.text.match(/\/start/)) {
-        bot.sendMessage(chatId, "I didn't understand that. Please use the commands mentioned at the beginning of the chat.");
+    if (!msg.text.match(/set language (\w+)/i) && !msg.text.match(/\d+/g)
+         && !msg.text.match(/\/start/) && !msg.text.match(/\/help/) ) {
+        bot.sendMessage(chatId, `I didn't understand that. Please use the commands mentioned at the beginning of the chat. Click /help to see the valid commands`);
     }
 })
 
