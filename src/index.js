@@ -40,9 +40,6 @@ async function translateText(message,languageCode) {
     const endpoint = "https://api.cognitive.microsofttranslator.com";
     const location = "eastus2";
 
-    console.log(message);
-    console.log(languageCode)
-
     try {
         const response = await axios({
             baseURL: endpoint,
@@ -96,8 +93,7 @@ async function getChuckNorrisJokes(){
 
         return jokes;
     } catch(err){
-        console.log("Error in getChuckNorrisJokes function", err.message);
-
+        console.error("Error in getChuckNorrisJokes function", err.message);
         return [];
     }
 }
@@ -168,7 +164,7 @@ bot.onText(/\d+/g,async(msg)=>{
 
 bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
-    const helpMsg="Here are the valid commands:\n1. /start - Initiate the chat\n2. /help - See the list of available commands\n3. set language <Your Language> - Set your preferred language\n4. <Joke number> - Get a Chuck Norris joke by number"
+    const helpMsg="Here are the valid commands:\n1. /start - Initiate the chat\n2. /help - See the list of available commands\n3. set language <Your Language> - Set your preferred language\n4. <Joke number> - Get a Chuck Norris joke by number between 1 and 101"
     bot.sendMessage(chatId,helpMsg );
 });
 
