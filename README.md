@@ -10,6 +10,6 @@ For starting the chat with the bot on Telegram, click [here](https://t.me/ChuckJ
 2. Set your preferred language using the command `set language <Your Language>`
 3. Choose a joke by entering a number between 1 and 101 using the command `<Your Number>`
 
-## Screenshots
+## Screenshots 📸
 ![Screenshot](botScreenshot/botScreenshot.png)
 
