@@ -10,7 +10,6 @@ const bot = new TelegramBot(TOKEN, {polling: true});
 const languageMap = new Map();
 let languageCode=process.env.DEFULT_LANG;
 let jokesArr=[];
-const validCommands=[/set language (\w+)/i,/\d+/g,/\/start/,/\/help/];
 
 // Function that gets all supported languages by Azure translator
 async function getSupportedLanguages(){
@@ -175,7 +174,8 @@ bot.onText(/\/help/, (msg) => {
 bot.on('message', async(msg)=>{
     const chatId = msg.chat.id;
 
-    if(validCommands.indexOf(msg.text)===-1){
+    if (!msg.text.match(/set language (\w+)/i) && !msg.text.match(/\d+/g)
+         && !msg.text.match(/\/start/) && !msg.text.match(/\/help/) ) {
         bot.sendMessage(chatId, `I didn't understand that. Please use the commands mentioned at the beginning of the chat. Click /help to see the valid commands`);
     }
 })
