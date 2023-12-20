@@ -1,7 +1,7 @@
 # ChuckBot 🤖
-ChuckBot is a Telegram bot that provides Chuck Norris jokes to the user deployed on AWS EC2.
-The bot uses the Azure Translation API to translate jokes into the selected language of the user.
-Additionally, the bot uses web scraping to fetch jokes from the URL: [101 Chuck Norris Jokes To Make You Laugh](https://parade.com/968666/parade/chuck-norris-jokes/).
+ChuckBot is a Telegram bot deployed on AWS EC2 that provides Chuck Norris jokes to users.
+The bot utilizes the Azure Translation API to translate jokes into the user's selected language.
+Additionally, it employs web scraping to fetch jokes from the URL: [101 Chuck Norris Jokes To Make You Laugh](https://example-url.com/).
 
 ## Getting Started 🚀
 For starting the chat with the bot on Telegram, click [here](https://t.me/ChuckJokes_Bot)
